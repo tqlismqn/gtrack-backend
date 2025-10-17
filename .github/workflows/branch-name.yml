@@ -1,0 +1,13 @@
+name: branch-name
+on:
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch naming
+        run: |
+          BR="${{ github.head_ref }}"
+          echo "$BR" | grep -E '^codex\/[a-z0-9._-]+-[0-9]{12}$' \
+            || (echo "Branch must be codex/<task>-<yyyymmddHHMM>" && exit 1)
