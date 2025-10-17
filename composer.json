@@ -1,0 +1,8 @@
+{
+  "name": "gtrack/gtrack-backend",
+  "description": "G-Track v2 Backend (skeleton for step 1)",
+  "type": "project",
+  "license": "MIT",
+  "require": {},
+  "scripts": {}
+}
