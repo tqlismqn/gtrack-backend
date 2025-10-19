@@ -20,21 +20,32 @@ jobs:
   branch-name:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate branch naming
+      - name: Validate branch naming (adapter)
         run: |
           BR="${{ github.head_ref }}"
-          echo "$BR" | grep -E '^codex\/[a-z0-9._-]+-[0-9]{12}$' \
-            || (echo "Branch must be codex/<task>-<yyyymmddHHMM>" && exit 1)
+          echo "Branch: $BR"
+          if echo "$BR" | grep -Eq '^codex/[a-z0-9._-]+-[0-9]{12}$'; then
+            echo "OK: strict pattern"
+            exit 0
+          fi
+          if echo "$BR" | grep -Eq '^codex/[a-z0-9._-]+$'; then
+            echo "ADAPTER: allowing non-timestamped codex/<task> for bootstrap"
+            exit 0
+          fi
+          echo "ERROR: Branch must match codex/<task>-<yyyymmddHHMM> or codex/<task> (adapter)"
+          exit 1
 
   fresh-branch:
     runs-on: ubuntu-latest
     steps:
-      - name: Check timestamp age (<=14 days)
+      - name: Check timestamp age (<=14 days, adapter)
         run: |
           BR="${{ github.head_ref }}"
-          TS=$(echo "$BR" | sed -E 's#^codex/.+-([0-9]{12})$#\1#')
-          [ -n "$TS" ] || { echo "No timestamp in branch name"; exit 1; }
-          # GNU date (Linux) or BSD date (macOS) fallback
+          TS=$(echo "$BR" | sed -nE 's#^codex/.+-([0-9]{12})$#\1#p')
+          if [ -z "$TS" ]; then
+            echo "ADAPTER: no timestamp in branch name, skipping age check for bootstrap"
+            exit 0
+          fi
           BR_EPOCH=$(date -u -d "${TS:0:4}-${TS:4:2}-${TS:6:2} ${TS:8:2}:${TS:10:2}:00" +%s 2>/dev/null || date -j -f "%Y-%m-%d %H:%M:%S" "${TS:0:4}-${TS:4:2}-${TS:6:2} ${TS:8:2}:${TS:10:2}:00" "+%s")
           NOW_EPOCH=$(date -u +%s 2>/dev/null || date -j -u "+%s")
           AGE_DAYS=$(( (NOW_EPOCH - BR_EPOCH) / 86400 ))

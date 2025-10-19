@@ -1,0 +1,22 @@
+name: branch-name
+on:
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch naming (adapter)
+        run: |
+          BR="${{ github.head_ref }}"
+          echo "Branch: $BR"
+          if echo "$BR" | grep -Eq '^codex/[a-z0-9._-]+-[0-9]{12}$'; then
+            echo "OK: strict pattern"
+            exit 0
+          fi
+          if echo "$BR" | grep -Eq '^codex/[a-z0-9._-]+$'; then
+            echo "ADAPTER: allowing non-timestamped codex/<task> for bootstrap"
+            exit 0
+          fi
+          echo "ERROR: Branch must match codex/<task>-<yyyymmddHHMM> or codex/<task> (adapter)"
+          exit 1

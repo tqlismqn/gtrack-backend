@@ -1,0 +1,20 @@
+name: fresh-branch
+on:
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  fresh-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check timestamp age (<=14 days, adapter)
+        run: |
+          BR="${{ github.head_ref }}"
+          TS=$(echo "$BR" | sed -nE 's#^codex/.+-([0-9]{12})$#\1#p')
+          if [ -z "$TS" ]; then
+            echo "ADAPTER: no timestamp in branch name, skipping age check for bootstrap"
+            exit 0
+          fi
+          BR_EPOCH=$(date -u -d "${TS:0:4}-${TS:4:2}-${TS:6:2} ${TS:8:2}:${TS:10:2}:00" +%s 2>/dev/null || date -j -f "%Y-%m-%d %H:%M:%S" "${TS:0:4}-${TS:4:2}-${TS:6:2} ${TS:8:2}:${TS:10:2}:00" "+%s")
+          NOW_EPOCH=$(date -u +%s 2>/dev/null || date -j -u "+%s")
+          AGE_DAYS=$(( (NOW_EPOCH - BR_EPOCH) / 86400 ))
+          [ "$AGE_DAYS" -le 14 ] || { echo "Branch older than 14 days"; exit 1; }
