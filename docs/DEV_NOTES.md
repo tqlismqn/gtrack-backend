@@ -1,3 +1,3 @@
-# DEV NOTES (reset v2)
-- New workflow names to avoid stale required checks.
-- Step 1 skeleton only. Real code arrives in next steps.
+# DEV NOTES (v2 bootstrap)
+- Primary CI contexts are provided by `gtrack-ci-v2` and `gtrack-policy-v2`.
+- Legacy compatibility workflows were removed once branch protection targeted the v2 contexts.

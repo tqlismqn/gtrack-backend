@@ -1,14 +1,12 @@
 name: gtrack-policy-v2
 on:
-  pull_request:
-    branches: [ "main" ]
+  pull_request: { branches: [ "main" ] }
 jobs:
   check-docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: test -f docs/DEV_NOTES.md || (echo "docs/DEV_NOTES.md is required" && exit 1)
-
   guard-readme:
     runs-on: ubuntu-latest
     steps:
@@ -16,37 +14,25 @@ jobs:
         run: |
           body="${{ github.event.pull_request.body }}"
           echo "$body" | grep -qi "Docs updated" || (echo "PR body must contain 'Docs updated' block" && exit 1)
-
   branch-name:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate branch naming (adapter)
+      - name: Validate branch naming (adapter for bootstrap)
         run: |
           BR="${{ github.head_ref }}"
-          echo "Branch: $BR"
-          if echo "$BR" | grep -Eq '^codex/[a-z0-9._-]+-[0-9]{12}$'; then
-            echo "OK: strict pattern"
+          if echo "$BR" | grep -Eq '^codex/[a-z0-9._-]+(-[0-9]{12})?$'; then
             exit 0
           fi
-          if echo "$BR" | grep -Eq '^codex/[a-z0-9._-]+$'; then
-            echo "ADAPTER: allowing non-timestamped codex/<task> for bootstrap"
-            exit 0
-          fi
-          echo "ERROR: Branch must match codex/<task>-<yyyymmddHHMM> or codex/<task> (adapter)"
+          echo "ERROR: name must be codex/<task> or codex/<task>-<yyyymmddHHMM>"
           exit 1
-
   fresh-branch:
     runs-on: ubuntu-latest
     steps:
-      - name: Check timestamp age (<=14 days, adapter)
+      - name: Check timestamp age (<=14 days, skip if none)
         run: |
           BR="${{ github.head_ref }}"
           TS=$(echo "$BR" | sed -nE 's#^codex/.+-([0-9]{12})$#\1#p')
-          if [ -z "$TS" ]; then
-            echo "ADAPTER: no timestamp in branch name, skipping age check for bootstrap"
-            exit 0
-          fi
+          [ -z "$TS" ] && exit 0
           BR_EPOCH=$(date -u -d "${TS:0:4}-${TS:4:2}-${TS:6:2} ${TS:8:2}:${TS:10:2}:00" +%s 2>/dev/null || date -j -f "%Y-%m-%d %H:%M:%S" "${TS:0:4}-${TS:4:2}-${TS:6:2} ${TS:8:2}:${TS:10:2}:00" "+%s")
           NOW_EPOCH=$(date -u +%s 2>/dev/null || date -j -u "+%s")
-          AGE_DAYS=$(( (NOW_EPOCH - BR_EPOCH) / 86400 ))
-          [ "$AGE_DAYS" -le 14 ] || { echo "Branch older than 14 days"; exit 1; }
+          [ $(((NOW_EPOCH - BR_EPOCH) / 86400)) -le 14 ] || exit 1
