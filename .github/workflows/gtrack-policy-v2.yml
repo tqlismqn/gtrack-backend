@@ -1,0 +1,41 @@
+name: gtrack-policy-v2
+on:
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: test -f docs/DEV_NOTES.md || (echo "docs/DEV_NOTES.md is required" && exit 1)
+
+  guard-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure PR body contains 'Docs updated'
+        run: |
+          body="${{ github.event.pull_request.body }}"
+          echo "$body" | grep -qi "Docs updated" || (echo "PR body must contain 'Docs updated' block" && exit 1)
+
+  branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch naming
+        run: |
+          BR="${{ github.head_ref }}"
+          echo "$BR" | grep -E '^codex\/[a-z0-9._-]+-[0-9]{12}$' \
+            || (echo "Branch must be codex/<task>-<yyyymmddHHMM>" && exit 1)
+
+  fresh-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check timestamp age (<=14 days)
+        run: |
+          BR="${{ github.head_ref }}"
+          TS=$(echo "$BR" | sed -E 's#^codex/.+-([0-9]{12})$#\1#')
+          [ -n "$TS" ] || { echo "No timestamp in branch name"; exit 1; }
+          # GNU date (Linux) or BSD date (macOS) fallback
+          BR_EPOCH=$(date -u -d "${TS:0:4}-${TS:4:2}-${TS:6:2} ${TS:8:2}:${TS:10:2}:00" +%s 2>/dev/null || date -j -f "%Y-%m-%d %H:%M:%S" "${TS:0:4}-${TS:4:2}-${TS:6:2} ${TS:8:2}:${TS:10:2}:00" "+%s")
+          NOW_EPOCH=$(date -u +%s 2>/dev/null || date -j -u "+%s")
+          AGE_DAYS=$(( (NOW_EPOCH - BR_EPOCH) / 86400 ))
+          [ "$AGE_DAYS" -le 14 ] || { echo "Branch older than 14 days"; exit 1; }
