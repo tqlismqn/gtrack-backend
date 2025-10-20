@@ -1,0 +1,30 @@
+name: Docs – Notify Portal
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    env:
+      TOKEN: ${{ secrets.DOCS_SYNC_TOKEN || secrets.SYNC_REPOS_TOKEN }}
+    steps:
+      - name: Guard secret
+        run: |
+          if [ -z "${TOKEN}" ]; then
+            echo "::error::Missing DOCS_SYNC_TOKEN (or SYNC_REPOS_TOKEN) with repo access to gtrack-docs"; exit 1;
+          fi
+      - name: Trigger docs portal autosync
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ env.TOKEN }}
+          repository: tqlismqn/gtrack-docs
+          event-type: sync-import
+          client-payload: |
+            {"source":"${{ github.repository }}","sha":"${{ github.sha }}"}
