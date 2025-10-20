@@ -4,3 +4,6 @@
 
 ## Sync probe (202510192224)
 - Minor touch to trigger portal auto-sync & automerge.
+
+## Sync probe (202510201137)
+- Backend autosync+automerge drill.

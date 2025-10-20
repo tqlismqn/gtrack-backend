@@ -10,10 +10,11 @@ jobs:
   guard-readme:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Ensure PR body contains 'Docs updated'
-        run: |
-          body="${{ github.event.pull_request.body }}"
-          echo "$body" | grep -qi "Docs updated" || (echo "PR body must contain 'Docs updated' block" && exit 1)
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: ./scripts/ensure_docs_block.sh
   branch-name:
     runs-on: ubuntu-latest
     steps:
