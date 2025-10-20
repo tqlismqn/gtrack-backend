@@ -7,3 +7,5 @@
 
 ## Sync probe (20251020105004)
 - Autosync+automerge drill for portal validation.
+## Sync probe (20251020151530)
+- Backend autosync drill to refresh guard-readme compliance.
