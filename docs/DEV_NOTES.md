@@ -10,3 +10,5 @@
 
 ## Sync probe (20251020144710)
 - Backend: push-to-main triggers repository_dispatch to portal.
+
+- Composer allow-plugins: enabled pestphp/pest-plugin for CI
