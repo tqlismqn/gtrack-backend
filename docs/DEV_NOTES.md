@@ -10,3 +10,4 @@
 
 ## Sync probe (20251020144710)
 - Backend: push-to-main triggers repository_dispatch to portal.
+- sync probe: reset 20251021115508
