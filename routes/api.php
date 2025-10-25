@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\DriverController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v0')->group(function () {
@@ -12,6 +12,5 @@ Route::prefix('v0')->group(function () {
         ]);
     });
 
-    // Future routes will be added here
-    // Route::apiResource('drivers', DriverController::class);
+    Route::apiResource('drivers', DriverController::class);
 });
