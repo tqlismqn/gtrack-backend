@@ -1,18 +1,20 @@
 #!/usr/bin/env bash
 # Script to ensure PR body contains "## Docs updated" block
-# Used by CI workflow: gtrack-policy-v2 / check-docs
+# Used by CI workflow: gtrack-policy-v2 / guard-readme
 
 set -e
 
-PR_BODY_FILE="${1:-pr_body.txt}"
+# GitHub Actions provides PR body via environment variable
+PR_BODY="${PR_BODY:-}"
 
-if [ ! -f "$PR_BODY_FILE" ]; then
-    echo "Error: PR body file not found: $PR_BODY_FILE"
+if [ -z "$PR_BODY" ]; then
+    echo "Error: PR_BODY environment variable is not set"
+    echo "This script should be called from GitHub Actions workflow"
     exit 1
 fi
 
 # Check if PR body contains "## Docs updated" section
-if grep -q "^## Docs updated" "$PR_BODY_FILE"; then
+if echo "$PR_BODY" | grep -q "^## Docs updated"; then
     echo "✅ PR body contains required '## Docs updated' block"
     exit 0
 else
