@@ -3,14 +3,20 @@
     "name": "gtrack/backend",
     "type": "project",
     "description": "G-Track Transport Management System - Backend API",
-    "keywords": ["laravel", "tms", "transport", "logistics"],
+    "keywords": [
+        "laravel",
+        "tms",
+        "transport",
+        "logistics"
+    ],
     "license": "proprietary",
     "require": {
         "php": "^8.2",
         "laravel/framework": "^11.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
-        "laravel/pulse": "^1.0@beta"
+        "laravel/pulse": "^1.0@beta",
+        "nesbot/carbon": "^2.0 || ^3.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
