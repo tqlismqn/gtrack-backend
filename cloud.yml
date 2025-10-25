@@ -1,0 +1,13 @@
+id: gtrack-backend
+name: gtrack-backend
+environments:
+  production:
+    deploy:
+      - 'composer install --no-dev --optimize-autoloader'
+      - 'php artisan migrate --force'
+      - 'php artisan db:seed --force --class=DriversTableSeeder'
+    daemon_processes:
+      octane:
+        command: 'php artisan octane:start --host=0.0.0.0 --port=8000'
+    monitoring:
+      nightwatch: false
