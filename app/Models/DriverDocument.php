@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,12 +20,15 @@ class DriverDocument extends Model
         'country',
         'from',
         'to',
+        'status',
+        'days_until_expiry',
         'meta',
     ];
 
     protected $casts = [
         'from' => 'date',
         'to' => 'date',
+        'days_until_expiry' => 'integer',
         'meta' => 'array',
     ];
 
@@ -46,35 +48,4 @@ class DriverDocument extends Model
                     ->where('is_current', true);
     }
 
-    public function getStatusAttribute(): string
-    {
-        if (! $this->to) {
-            return 'no_data';
-        }
-
-        $daysUntilExpiry = Carbon::now()->diffInDays($this->to, false);
-
-        if ($daysUntilExpiry < 0) {
-            return 'expired';
-        }
-
-        if ($daysUntilExpiry <= 30) {
-            return 'expiring_soon';
-        }
-
-        if ($daysUntilExpiry <= 60) {
-            return 'warning';
-        }
-
-        return 'valid';
-    }
-
-    public function getDaysUntilExpiryAttribute(): ?int
-    {
-        if (! $this->to) {
-            return null;
-        }
-
-        return Carbon::now()->diffInDays($this->to, false);
-    }
 }

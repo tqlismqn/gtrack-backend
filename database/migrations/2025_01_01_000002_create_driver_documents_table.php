@@ -10,10 +10,9 @@ return new class extends Migration
     {
         Schema::create('driver_documents', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('driver_id')
-                  ->constrained('drivers')
-                  ->onDelete('cascade');
+            $table->foreignUuid('driver_id')->constrained('drivers')->cascadeOnDelete();
 
+            // Document type (enum)
             $table->enum('type', [
                 'passport',
                 'visa',
@@ -29,23 +28,28 @@ return new class extends Migration
                 'chip',
                 'kod_95',
                 'prohlidka'
-            ])->comment('Document type');
+            ]);
 
-            $table->string('number', 50)->nullable()->comment('Document number');
-            $table->string('country', 2)->nullable()->comment('ISO country code');
-            $table->date('from')->nullable()->comment('Valid from date');
-            $table->date('to')->nullable()->comment('Valid to / expiry date');
+            // Document details
+            $table->string('number')->nullable();
+            $table->string('country', 2)->nullable();
+            $table->date('from')->nullable();
+            $table->date('to')->nullable();
 
-            $table->jsonb('meta')->nullable()->comment('Additional metadata');
+            // Status fields (NEW!)
+            $table->enum('status', ['valid', 'warning', 'expiring_soon', 'expired', 'no_data'])
+                  ->default('no_data');
+            $table->integer('days_until_expiry')->nullable();
+
+            // Additional metadata
+            $table->json('meta')->nullable();
 
             $table->timestamps();
 
             // Indexes
-            $table->index(['driver_id', 'type']);
-            $table->index('to')->comment('For expiry date queries');
-
-            // Unique constraint: one document of each type per driver
-            $table->unique(['driver_id', 'type']);
+            $table->index('driver_id');
+            $table->index('type');
+            $table->index('status');
         });
     }
 
