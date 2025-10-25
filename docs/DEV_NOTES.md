@@ -99,3 +99,35 @@ git commit -m "docs(drivers): add database schema documentation"
 git push
 # Auto-sync will handle the rest!
 ```
+
+## CORS Configuration
+
+The API allows cross-origin requests from:
+- Production: https://app.g-track.eu
+- Vercel Previews: https://gtrack-app-*.vercel.app
+- Local Development: http://localhost:4200
+- Local Development (alt port): http://localhost:4000
+
+Configuration file: `config/cors.php`
+
+### Testing CORS
+
+```bash
+curl -H "Origin: https://app.g-track.eu" \
+     -H "Access-Control-Request-Method: GET" \
+     -X OPTIONS \
+     https://gtrack-backend-gtrack-backend-lnf9mi.laravel.cloud/api/v0/drivers
+
+# Should return:
+# Access-Control-Allow-Origin: https://app.g-track.eu
+# Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+```
+
+### Troubleshooting
+
+**CORS errors in browser console:**
+1. Check origin is in `allowed_origins`
+2. Verify middleware is active
+3. Check OPTIONS request succeeds
+4. Clear browser cache
+
