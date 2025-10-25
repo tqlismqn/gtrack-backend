@@ -8,13 +8,19 @@ jobs:
       - uses: actions/checkout@v4
       - run: test -f docs/DEV_NOTES.md || (echo "docs/DEV_NOTES.md is required" && exit 1)
   guard-readme:
+    name: Ensure PR body contains 'Docs updated'
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v4
-      - name: Ensure PR body contains 'Docs updated'
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check PR body for docs block
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: ./scripts/ensure_docs_block.sh
+        run: |
+          chmod +x ./scripts/ensure_docs_block.sh
+          ./scripts/ensure_docs_block.sh
   branch-name:
     runs-on: ubuntu-latest
     steps:

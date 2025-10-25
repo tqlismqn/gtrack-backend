@@ -1,0 +1,71 @@
+name: Notify Docs Sync
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+  workflow_dispatch:
+
+jobs:
+  notify-docs-repo:
+    name: Trigger docs repository sync
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Manual trigger - sync all docs"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            changed=$(git diff --name-only HEAD^ HEAD -- docs/)
+            if [ -n "$changed" ]; then
+              echo "Changed docs files:"
+              echo "$changed"
+              echo "has_changes=true" >> $GITHUB_OUTPUT
+            else
+              echo "No docs changes detected"
+              echo "has_changes=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Trigger gtrack-docs sync
+        if: steps.changed-files.outputs.has_changes == 'true'
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.DOCS_SYNC_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/tqlismqn/gtrack-docs/dispatches \
+            -d '{
+              "event_type": "backend-docs-updated",
+              "client_payload": {
+                "repository": "gtrack-backend",
+                "ref": "${{ github.ref }}",
+                "sha": "${{ github.sha }}",
+                "pusher": "${{ github.actor }}"
+              }
+            }'
+          
+          echo "✅ Triggered docs sync in gtrack-docs repository"
+          echo "📝 Changed files will be imported to import/backend/"
+
+      - name: Summary
+        if: steps.changed-files.outputs.has_changes == 'true'
+        run: |
+          echo "### 📚 Documentation Sync Triggered" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Backend docs changes detected and sync triggered." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check [gtrack-docs](https://github.com/tqlismqn/gtrack-docs) for automatic PR" >> $GITHUB_STEP_SUMMARY
+          echo "2. PR will be labeled \`automerge\` and merged automatically" >> $GITHUB_STEP_SUMMARY
+          echo "3. Changes will appear at https://docs.g-track.eu" >> $GITHUB_STEP_SUMMARY
